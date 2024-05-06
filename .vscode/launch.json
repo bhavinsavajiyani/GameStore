@@ -1,0 +1,10 @@
+{
+    "configurations": [
+        {
+            "name": "C#: GameStore_Frontend [Default Configuration]",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/GameStore_Frontend/GameStore_Frontend.csproj"
+        }
+    ]
+}
