@@ -1,12 +1,16 @@
 ﻿@page "/edit-games-collection"
+@page "/edit-games-collection/{id:int}"
+
 @inject NavigationManager NavigationManager
-@inject GamesClient Client
+@inject GamesClient GamesClient
 @inject GenresClient GenresClient
 
-<PageTitle>New Game</PageTitle>
-<h3>Add New Game</h3>
+@rendermode InteractiveServer
 
-@if(genres is null)
+<PageTitle>@title</PageTitle>
+<h3>@title</h3>
+
+@if(genres is null || gameDetails is null)
 {
     <p><em>Loading...</em></p>
 }
@@ -25,7 +29,7 @@ else
                 <div class="mb-3">
                     <label for="genre" class="form-label">Genre:</label>
                     <InputSelect id="genre" @bind-Value="gameDetails.GenreID" class="form-select">
-                        <option value="">Select a Genre</option>
+                        <option value="">--- Select a Genre ---</option>
                         @foreach(var genre in genres)
                         {
                             <option value="@genre.ID">@genre.Name</option>
@@ -50,13 +54,41 @@ else
 }
 
 @code {
+
+    [Parameter]
+    public int? ID {get; set;}
+
     [SupplyParameterFromForm]
-    private GameDetails gameDetails {get; set;} = new()
-    {
-        Name = string.Empty,
-        ReleaseDate = DateOnly.FromDateTime(DateTime.UtcNow)
-    };
+    private GameDetails? gameDetails {get; set;}
+    
     private Genres[]? genres;
+
+    private string title = string.Empty;
+
+    protected override void OnParametersSet()
+    {
+        if(gameDetails is not null)
+        {
+            return;
+        }
+
+        if(ID is not null)
+        {
+            gameDetails = GamesClient.GetGame(ID.Value);
+            title = $"Edit {gameDetails.Name}";
+        }
+
+        else
+        {
+            gameDetails = new()
+            {
+                Name = string.Empty,
+                ReleaseDate = DateOnly.FromDateTime(DateTime.UtcNow)
+            };
+
+            title = "New Game";
+        }
+    }
 
     protected override void OnInitialized()
     {
@@ -65,7 +97,21 @@ else
 
     private void HandleSubmit()
     {
-        Client.AddGame(gameDetails);
+        ArgumentNullException.ThrowIfNull(gameDetails);
+
+        if(ID is null)
+        {
+            GamesClient.AddGame(gameDetails);
+        }
+
+        else
+        {
+            gameDetails.ID = ID.Value;
+            gameDetails.GenreID = GamesClient.GetGame(ID.Value).GenreID;
+            GamesClient.UpdateGame(gameDetails);
+        }
+
+        GamesClient.AddGame(gameDetails);
         NavigationManager.NavigateTo("/");
     }
 }
