@@ -9,7 +9,7 @@ Content-Type: application/json
 
 {
     "name": "Forza Horizon 4",
-    "genre": "Racing",
+    "genreID": 5,
     "price": 99.99,
     "releaseDate": "2018-09-28"
 }

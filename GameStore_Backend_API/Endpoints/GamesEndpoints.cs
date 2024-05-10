@@ -1,4 +1,6 @@
-﻿using GameStore_Backend_API.DTOs;
+﻿using GameStore_Backend_API.Data;
+using GameStore_Backend_API.DTOs;
+using GameStore_Backend_API.Entities;
 
 namespace GameStore_Backend_API.Endpoints;
 
@@ -48,19 +50,29 @@ public static class GamesEndpoints
         .WithName(GetEndPointName);
 
         // POST new game to the collection (/games)
-        group.MapPost("/", (CreateGameDTO newGame) =>
+        group.MapPost("/", (CreateGameDTO newGame, GameStoreContext dbContext) =>
         {
-            GameDTO game = new(
-                games.Count() + 1,
-                newGame.Name,
-                newGame.Genre,
-                newGame.Price,
-                newGame.ReleaseDate
+            Game game = new()
+            {
+                Name = newGame.Name,
+                GenreID = newGame.GenreID,
+                Genre = dbContext.Genres.Find(newGame.GenreID),
+                Price = newGame.Price,
+                ReleaseDate = newGame.ReleaseDate
+            };
+
+            dbContext.Games.Add(game);
+            dbContext.SaveChanges();
+
+            GameDTO gameDTO = new(
+                game.ID,
+                game.Name,
+                game.Genre!.Name,
+                game.Price,
+                game.ReleaseDate
             );
 
-            games.Add(game);
-
-            return Results.CreatedAtRoute(GetEndPointName, new {id = game.ID}, game);
+            return Results.CreatedAtRoute(GetEndPointName, new {id = game.ID}, gameDTO);
         });
 
         // PUT -> edit & update specified game from the collection
