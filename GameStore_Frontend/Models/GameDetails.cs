@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+using GameStore_Frontend.Converters;
 
 namespace GameStore_Frontend.Models;
 
@@ -10,6 +12,7 @@ public class GameDetails
     public required string Name {get; set;}
     
     [Required(ErrorMessage = "The Genre field is required.")]
+    [JsonConverter(typeof(StringConverter))]
     public string? GenreID {get; set;}
     
     [Range(0, 100)]
